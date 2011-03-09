@@ -5,6 +5,6 @@ done
 redo-ifchange $DEPS
 
 CFLAGS="-rdynamic -shared"
-LIBS="-lc -lm"
+LIBS=""
 
 gcc $CFLAGS $LIBS $DEPS -o $1.pd_linux
