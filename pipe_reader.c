@@ -1,15 +1,47 @@
 #include "pipe_reader.h"
 #include <stdlib.h>
+#include <string.h>
+
+static void chomp (char* s)
+{
+	int end = strlen(s) - 1;
+	if (end >= 0 && s[end] == '\n')
+	{
+		s[end] = '\0';
+	}
+}
 
 void pipe_reader_bang(t_pipe_reader* x)
 {
 	if(x->pipe)
 	{
-		ssize_t read = getline(&x->input_buffer,&x->buffer_size,x->pipe);
+		int counter = 0;
+		t_atom atoms[MAX_OUTPUT_ATOMS];
 		
+		ssize_t read = getline(&x->input_buffer,&x->buffer_size,x->pipe);
+
 		if(read > 0)
 		{
-			post(x->input_buffer);
+			chomp(x->input_buffer);
+
+			char* str = strtok(x->input_buffer," ");
+			while(str && counter < MAX_OUTPUT_ATOMS)
+			{
+				char* end;
+				double d = strtod(str,&end);
+				if(str != end)
+				{
+					SETFLOAT(&atoms[counter],d);
+				}
+				else
+				{
+					SETSYMBOL(&atoms[counter],gensym(str));
+				}
+				++counter;
+				str = strtok(NULL," ");
+			}
+			
+			outlet_anything(x->output,atom_getsymbol(&atoms[0]),counter,&atoms[1]);
 		}
 	}
 }
@@ -19,6 +51,9 @@ void* pipe_reader_new(void)
 	t_pipe_reader* x = (t_pipe_reader*)pd_new(pipe_reader_class);
 	x->input_buffer = NULL;
 	x->buffer_size = 0;
+	x->pipe = NULL;
+
+	x->output = outlet_new(&x->x_obj, 0);
 	
 	return (void*)x;
 }

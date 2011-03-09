@@ -1,11 +1,14 @@
 #include "m_pd.h"
 #include <stdio.h>
 
+#define MAX_OUTPUT_ATOMS 8
+
 static t_class* pipe_reader_class;
 
 typedef struct _pipe_reader
 {
 	t_object  x_obj;
+	t_outlet* output;
 	FILE* pipe;
 	char* input_buffer;
 	size_t buffer_size;
