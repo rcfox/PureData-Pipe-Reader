@@ -102,9 +102,10 @@ void pipe_reader_open_file(t_pipe_reader* x, t_symbol* filename)
 	// If the open fails, try to create the named pipe and then try opening again.
 	if(fifo_fd < 0)
 	{
-		mkfifo(filename->s_name, 0600);
+		mkfifo(filename->s_name, 0600); // 0600 => only read/writeable by me.
 		fifo_fd = open(filename->s_name, O_RDONLY | O_NONBLOCK);
 	}
+	
 	x->pipe = fdopen(fifo_fd, "r");
 	
 	if(!x->pipe)
