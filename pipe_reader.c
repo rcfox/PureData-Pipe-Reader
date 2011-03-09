@@ -1,6 +1,7 @@
 #include "pipe_reader.h"
 #include <stdlib.h>
 #include <string.h>
+#include <fcntl.h>
 
 static void chomp (char* s)
 {
@@ -17,7 +18,8 @@ void pipe_reader_bang(t_pipe_reader* x)
 	{
 		size_t counter = 0;
 		t_atom atoms[MAX_OUTPUT_ATOMS];
-		
+
+		// Read a line from the file.
 		ssize_t read = getline(&x->input_buffer,&x->buffer_size,x->pipe);
 
 		if(read > 0)
@@ -29,7 +31,7 @@ void pipe_reader_bang(t_pipe_reader* x)
 			{
 				char* end;
 				double d = strtod(str,&end);
-				if(str != end)
+				if(str != end) // Check to see if the string contains a number.
 				{
 					SETFLOAT(&atoms[counter],d);
 				}
@@ -41,7 +43,15 @@ void pipe_reader_bang(t_pipe_reader* x)
 				str = strtok(NULL," ");
 			}
 			
-			outlet_anything(x->output,atom_getsymbol(&atoms[0]),counter,&atoms[1]);
+			outlet_anything(x->output,
+			                atom_getsymbol(&atoms[0]), // The message type
+			                counter,&atoms[1]); // The rest of the atoms
+		}
+		else
+		{
+			// If there's nothing else to read, go to the beginning and clear the error.
+			// We'll try again next time.
+			rewind(x->pipe);
 		}
 	}
 }
@@ -84,8 +94,10 @@ void pipe_reader_open_file(t_pipe_reader* x, t_symbol* filename)
 	{
 		pipe_reader_close_file(x);
 	}
-			
-	x->pipe = fopen(filename->s_name,"r");
+
+	// Allow us to open the pipe before anyone else has it open for writing.
+	int fifo_fd = open(filename->s_name, O_RDONLY | O_NONBLOCK);
+	x->pipe = fdopen(fifo_fd, "r");
 	
 	if(!x->pipe)
 	{
