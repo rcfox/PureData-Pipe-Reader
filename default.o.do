@@ -1,6 +1,6 @@
 redo-ifchange $1.c
 
-CFLAGS="-fPIC"
+CFLAGS="-fPIC -std=gnu99"
 INCLUDE=""
 
 gcc $CFLAGS $INCLUDE -MD -MF $1.d -c -o $3 $1.c
