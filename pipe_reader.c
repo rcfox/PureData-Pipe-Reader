@@ -4,7 +4,7 @@
 
 static void chomp (char* s)
 {
-	int end = strlen(s) - 1;
+	size_t end = strlen(s) - 1;
 	if (end >= 0 && s[end] == '\n')
 	{
 		s[end] = '\0';
@@ -15,7 +15,7 @@ void pipe_reader_bang(t_pipe_reader* x)
 {
 	if(x->pipe)
 	{
-		int counter = 0;
+		size_t counter = 0;
 		t_atom atoms[MAX_OUTPUT_ATOMS];
 		
 		ssize_t read = getline(&x->input_buffer,&x->buffer_size,x->pipe);
@@ -78,9 +78,7 @@ void pipe_reader_setup(void)
 
 void pipe_reader_open_file(t_pipe_reader* x, t_symbol* filename)
 {
-	char buf[256];
-	snprintf(buf,sizeof(buf),"Opening %s.",filename->s_name);
-	post(buf);
+	post("Opening %s",filename->s_name);
 
 	if(x->pipe)
 	{
@@ -91,8 +89,7 @@ void pipe_reader_open_file(t_pipe_reader* x, t_symbol* filename)
 	
 	if(!x->pipe)
 	{
-		snprintf(buf,sizeof(buf),"Couldn't open %s.",filename->s_name);
-		post(buf);
+		post("Couldn't open %s.",filename->s_name);
 	}
 }
 
