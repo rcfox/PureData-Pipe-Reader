@@ -5,7 +5,7 @@ void pipe_reader_bang(t_pipe_reader* x)
 {
 	if(x->pipe)
 	{
-		size_t read = getline(&x->input_buffer,&x->buffer_size,x->pipe);
+		ssize_t read = getline(&x->input_buffer,&x->buffer_size,x->pipe);
 		
 		if(read > 0)
 		{
@@ -50,17 +50,7 @@ void* pipe_reader_new(void)
 
 void pipe_reader_free(t_pipe_reader* x)
 {
-	if(x->pipe)
-	{
-		fclose(x->pipe);
-		x->pipe = NULL;
-	}
-	if(x->input_buffer)
-	{
-		free(x->input_buffer);
-		x->input_buffer = NULL;
-		x->buffer_size = 0;
-	}
+	pipe_reader_close_file(x);
 }
 
 void pipe_reader_setup(void)
@@ -97,13 +87,11 @@ void pipe_reader_close_file(t_pipe_reader* x)
 	{
 		fclose(x->pipe);
 		x->pipe = NULL;
-		
+	}
+	if(x->input_buffer)
+	{
 		free(x->input_buffer);
 		x->input_buffer = NULL;
 		x->buffer_size = 0;
-	}
-	else
-	{
-		post("No file opened.");
 	}
 }
