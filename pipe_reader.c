@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <fcntl.h>
+#include <sys/stat.h>
 
 static void chomp (char* s)
 {
@@ -97,6 +98,13 @@ void pipe_reader_open_file(t_pipe_reader* x, t_symbol* filename)
 
 	// Allow us to open the pipe before anyone else has it open for writing.
 	int fifo_fd = open(filename->s_name, O_RDONLY | O_NONBLOCK);
+
+	// If the open fails, try to create the named pipe and then try opening again.
+	if(fifo_fd < 0)
+	{
+		mkfifo(filename->s_name, 0600);
+		fifo_fd = open(filename->s_name, O_RDONLY | O_NONBLOCK);
+	}
 	x->pipe = fdopen(fifo_fd, "r");
 	
 	if(!x->pipe)
